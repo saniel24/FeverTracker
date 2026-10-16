@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>מעקב תרופות להורדת חום</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f3f6fb;--card:#fff;--text:#1d2733;--muted:#6b7886;--line:#e2e8f0;--ok:#16a34a;--okbg:#dcfce7;--bad:#dc2626;--badbg:#fee2e2;--n:#f97316;--a:#3b82f6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0f1720;--card:#1a2431;--text:#e8eef5;--muted:#93a1b1;--line:#2a3646;--ok:#22c55e;--okbg:#12361f;--bad:#f87171;--badbg:#3d1a1a}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0f1720;--card:#1a2431;--text:#e8eef5;--muted:#93a1b1;--line:#2a3646;--ok:#22c55e;--okbg:#12361f;--bad:#f87171;--badbg:#3d1a1a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;line-height:1.4}
+main{max-width:520px;margin:0 auto;padding:16px}
+h1{font-size:1.2rem;margin:4px 0 14px;text-align:center}
+.clock{border-radius:24px;padding:22px 14px;text-align:center;border:4px solid var(--ok);background:var(--okbg);transition:.3s}
+.clock.bad{border-color:var(--bad);background:var(--badbg)}
+.clock .st{font-size:1.1rem;font-weight:700;color:var(--ok)}
+.clock.bad .st{color:var(--bad)}
+.clock .big{font-size:3.2rem;font-weight:800;font-variant-numeric:tabular-nums;margin:6px 0;direction:ltr}
+.clock .sub{font-size:1rem}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.dose{border:0;border-radius:18px;padding:18px 8px;font-size:1.3rem;font-weight:700;color:#fff;cursor:pointer}
+.dose.n{background:var(--n)}.dose.a{background:var(--a)}
+.dose:active{transform:scale(.97)}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:10px;text-align:center;font-size:.9rem}
+.card.ok{border-color:var(--ok)}.card.bad{border-color:var(--bad)}
+.card b{display:block;font-size:1rem}
+.card .t{font-size:1.1rem;font-weight:700;direction:ltr;display:block}
+.card.ok .t{color:var(--ok)}.card.bad .t{color:var(--bad)}
+.bar{display:flex;justify-content:space-between;align-items:center;margin:20px 0 8px}
+.bar h2{font-size:1rem;margin:0}
+.btn{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:.9rem;cursor:pointer}
+.btn.pri{background:var(--a);border-color:var(--a);color:#fff}
+.btn.del{color:var(--bad)}
+ul{list-style:none;margin:0;padding:0}
+li{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+.dot{width:14px;height:14px;border-radius:50%;flex:none}
+.dot.n{background:var(--n)}.dot.a{background:var(--a)}
+li .nm{font-weight:700}li .tm{margin-inline-start:auto;color:var(--muted);font-size:.9rem;text-align:left}
+.empty{text-align:center;color:var(--muted);padding:18px}
+dialog{border:0;border-radius:20px;padding:18px;width:min(92vw,420px);background:var(--card);color:var(--text)}
+dialog::backdrop{background:#0009}
+dialog label{display:block;margin:10px 0 4px;font-size:.9rem;color:var(--muted)}
+dialog select,dialog input,dialog textarea{width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:1rem;font-family:inherit}
+dialog textarea{height:110px;direction:ltr;font-size:.75rem}
+.acts{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}.acts .btn{flex:1}
+.toast{position:fixed;inset-inline:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));background:#111c;color:#fff;border-radius:12px;padding:12px;text-align:center;display:none;max-width:480px;margin:auto}
+.tbox{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:14px}
+.trow{display:flex;gap:8px}.trow input{flex:1;min-width:0;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:1rem;font-family:inherit}
+.tinfo{margin-top:10px;font-size:.95rem;text-align:center;color:var(--muted)}
+.tinfo b{font-size:1.3rem;color:var(--ok)}.tinfo b.hot{color:var(--bad)}
+#tchart svg{width:100%;height:auto;direction:ltr;margin-top:6px}
+.dot.t{background:var(--bad)}
+.cloudb{text-align:center;font-size:.8rem;color:var(--muted);margin:-8px 0 12px}
+li{cursor:default;flex-wrap:wrap}
+.gt{font-weight:700;font-variant-numeric:tabular-nums;direction:ltr;min-width:88px;text-align:right}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:0;border-radius:999px;padding:6px 12px;font-size:.9rem;font-weight:700;color:#fff;cursor:pointer;font-family:inherit}
+.chip.n{background:var(--n)}.chip.a{background:var(--a)}.chip.temp{background:var(--ok)}.chip.hot{background:var(--bad)}
+.note{font-size:.75rem;color:var(--muted);text-align:center;margin-top:18px}
+</style>
+</head>
+<body>
+<main>
+<h1>🌡️ מעקב תרופות להורדת חום</h1>
+<div id="cloud" class="cloudb"></div>
+
+<section class="clock" id="clock">
+  <div class="st" id="st"></div>
+  <div class="big" id="big"></div>
+  <div class="sub" id="sub"></div>
+</section>
+
+<div class="row">
+  <button class="dose n" data-d="n">💊 נורופן</button>
+  <button class="dose a" data-d="a">💊 אקמולי</button>
+</div>
+
+<div class="cards">
+  <div class="card" id="cn"></div>
+  <div class="card" id="ca"></div>
+</div>
+
+<div class="tbox">
+  <div class="trow"><input id="tv" type="number" inputmode="decimal" step="0.1" placeholder="טמפרטורה, למשל 38.5"><button class="btn pri" id="addT">🌡️ רשום חום</button></div>
+  <div class="tinfo" id="tinfo"></div>
+  <div id="tchart"></div>
+</div>
+
+<div class="bar">
+  <h2>היסטוריה</h2>
+  <span>
+    <button class="btn" id="addManual">+ ידני</button>
+    <button class="btn" id="backup">גיבוי</button>
+  </span>
+</div>
+<ul id="list"></ul>
+<p class="note">נורופן: כל 6 שעות · אקמולי: כל 4 שעות · בין שתי התרופות לפחות שעתיים. לפי הנחיות רופא הילדים.</p>
+</main>
+
+<dialog id="dlg">
+  <h3 id="dtitle" style="margin:0 0 6px"></h3>
+  <label>תרופה</label>
+  <select id="fd"><option value="n">נורופן</option><option value="a">אקמולי</option><option value="t">טמפרטורה</option></select>
+  <div id="fvw" style="display:none"><label>טמפרטורה (°C)</label><input type="number" inputmode="decimal" step="0.1" id="fv"></div>
+  <label>מתי</label>
+  <input type="datetime-local" id="ft">
+  <div class="acts">
+    <button class="btn pri" id="save">שמירה</button>
+    <button class="btn del" id="del">מחיקה</button>
+    <button class="btn" id="cancel">ביטול</button>
+  </div>
+</dialog>
+
+<dialog id="bk">
+  <h3 style="margin:0 0 6px">גיבוי ושחזור (CSV)</h3>
+  <p style="font-size:.85rem;color:var(--muted);margin:0">ייצוא: הקובץ נשמר או נשלח דרך חלון המכשיר — בחרו שם Google Drive. ייבוא: בחרו את קובץ ה-CSV מהדרייב.</p>
+  <div class="acts"><button class="btn pri" id="exp">⬇ הורדת קובץ CSV</button><button class="btn pri" id="shr">↗ שיתוף (Drive)</button></div>
+  <label>ייבוא מקובץ — בחרו קובץ CSV מהדרייב או מהמכשיר</label>
+  <input type="file" id="file">
+  <label>או העתקה / הדבקה כטקסט</label>
+  <textarea id="txt" placeholder="הדביקו כאן נתוני CSV"></textarea>
+  <div class="acts">
+    <button class="btn" id="copy">העתקת הנתונים</button>
+    <button class="btn" id="impTxt">ייבוא מהטקסט</button>
+  </div>
+  <div class="acts"><button class="btn" id="close">סגירה</button></div>
+</dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+var KEY="fever-log-v1", H=3600000;
+var GROUP=10*60000;
+var NAME={n:"נורופן",a:"אקמולי",t:"חום"};
+var GAP={n:6*H,a:4*H}, CROSS=2*H;
+var log=[];
+try{log=JSON.parse(localStorage.getItem(KEY)||"[]");if(!Array.isArray(log))log=[];}catch(e){log=[];}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(log));}catch(e){toast("לא ניתן לשמור בדפדפן הזה");}}
+function $(i){return document.getElementById(i);}
+function p2(n){return (n<10?"0":"")+n;}
+function hm(t){var d=new Date(t);return p2(d.getHours())+":"+p2(d.getMinutes());}
+function dt(t){var d=new Date(t);return d.getDate()+"/"+(d.getMonth()+1)+" "+hm(t);}
+function cd(ms){var s=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60);s=s%60;return p2(h)+":"+p2(m)+":"+p2(s);}
+function toLocalInput(t){var d=new Date(t);return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate())+"T"+p2(d.getHours())+":"+p2(d.getMinutes());}
+function toast(m){var e=$("toast");e.textContent=m;e.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(function(){e.style.display="none";},3500);}
+function last(d){var r=0;log.forEach(function(x){if(x.d===d&&x.t>r)r=x.t;});return r;}
+function nextTime(d){
+  var o=d==="n"?"a":"n", ld=last(d), lo=last(o);
+  return Math.max(ld?ld+GAP[d]:0, lo?lo+CROSS:0);
+}
+var cloud=null,canW=true,MIG="fever-migrated-v1";
+function setBadge(){$("cloud").textContent=cloud?(canW?"☁ מסונכרן בענן — משותף לכל מי שמוזמן":"☁ קריאה בלבד"):"📱 שמור במכשיר בלבד";}
+function body(x){var o={d:x.d,t:x.t};if(x.d==="t")o.v=x.v;return o;}
+function put(x,quiet){
+  if(log.indexOf(x)<0)log.push(x);
+  persist();if(!quiet)render();
+  if(cloud&&canW)cloud.doc("entries/"+x.id).set(body(x)).catch(function(){toast("השמירה בענן נכשלה — נשמר במכשיר");});
+}
+function drop(x){
+  log=log.filter(function(y){return y!==x;});persist();render();
+  if(cloud&&canW)cloud.doc("entries/"+x.id).delete().catch(function(){toast("המחיקה בענן נכשלה");});
+}
+function render(){
+  var now=Date.now(), nn=nextTime("n"), na=nextTime("a");
+  var okN=now>=nn, okA=now>=na;
+  var c=$("clock");
+  if(okN||okA){
+    c.className="clock";
+    $("st").textContent="אפשר לתת עכשיו";
+    $("big").textContent="✓";
+    $("sub").textContent=okN&&okA?"נורופן או אקמולי":(okN?"נורופן":"אקמולי");
+  }else{
+    c.className="clock bad";
+    var d=nn<=na?"n":"a", t=Math.min(nn,na);
+    $("st").textContent="עדיין לא — להמתין";
+    $("big").textContent=cd(t-now);
+    $("sub").textContent="הבאה: "+NAME[d]+" בשעה "+hm(t);
+  }
+  card("cn","n",okN,nn,now);card("ca","a",okA,na,now);
+  renderTemp();
+  var u=$("list");u.innerHTML="";
+  var s=log.slice().sort(function(a,b){return b.t-a.t;});
+  if(!s.length){u.innerHTML='<div class="empty">עוד לא נרשמו מנות</div>';}
+  var groups=[];
+  s.forEach(function(x){
+    var g=groups[groups.length-1];
+    if(g&&g.t-x.t<=GROUP)g.items.push(x);else groups.push({t:x.t,items:[x]});
+  });
+  groups.forEach(function(g){
+    var li=document.createElement("li");
+    var tm=document.createElement("span");tm.className="gt";tm.textContent=dt(g.t);li.appendChild(tm);
+    var ch=document.createElement("span");ch.className="chips";
+    g.items.slice().sort(function(a,b){return (a.d==="t"?0:1)-(b.d==="t"?0:1);}).forEach(function(x){
+      var c=document.createElement("button");
+      c.className="chip "+(x.d==="t"?(x.v>=38?"hot":"temp"):x.d);
+      c.textContent=x.d==="t"?"🌡️ "+x.v.toFixed(1)+"°":"💊 "+NAME[x.d];
+      c.onclick=function(){openEdit(x);};
+      ch.appendChild(c);
+    });
+    li.appendChild(ch);
+    u.appendChild(li);
+  });
+}
+function renderTemp(){
+  var s=log.filter(function(x){return x.d==="t";}).sort(function(a,b){return a.t-b.t;});
+  var i=$("tinfo"),c=$("tchart");
+  if(!s.length){i.textContent="עוד לא נמדד חום";c.innerHTML="";return;}
+  var l=s[s.length-1],mins=Math.max(0,Math.round((Date.now()-l.t)/60000));
+  var ago=mins<60?mins+" דק׳":Math.floor(mins/60)+" שע׳ "+(mins%60)+" דק׳";
+  i.innerHTML='אחרון: <b class="'+(l.v>=38?"hot":"")+'">'+l.v.toFixed(1)+'°</b> בשעה '+hm(l.t)+' · לפני '+ago;
+  var r=s.slice(-12);
+  if(r.length<2){c.innerHTML="";return;}
+  var vs=r.map(function(x){return x.v;}),lo=Math.min(36,Math.min.apply(0,vs)),hi=Math.max(40,Math.max.apply(0,vs));
+  var W=300,H2=100,n=r.length;
+  function Y(v){return H2-18-(v-lo)/(hi-lo)*(H2-36);}
+  var pts=r.map(function(x,k){return (18+k*(264/(n-1))).toFixed(1)+","+Y(x.v).toFixed(1);});
+  var g='<line x1="0" x2="300" y1="'+Y(38)+'" y2="'+Y(38)+'" stroke="var(--bad)" stroke-dasharray="4 4" opacity=".6"/>';
+  g+='<polyline points="'+pts.join(" ")+'" fill="none" stroke="var(--a)" stroke-width="2.5"/>';
+  r.forEach(function(x,k){var p=pts[k].split(",");
+    g+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="4" fill="'+(x.v>=38?"var(--bad)":"var(--ok)")+'"/>';
+    g+='<text x="'+p[0]+'" y="'+(p[1]-8)+'" font-size="10" text-anchor="middle" fill="var(--text)">'+x.v.toFixed(1)+'</text>';
+    g+='<text x="'+p[0]+'" y="'+(H2-3)+'" font-size="8" text-anchor="middle" fill="var(--muted)">'+hm(x.t)+'</text>';});
+  c.innerHTML='<svg viewBox="0 0 '+W+' '+H2+'">'+g+'</svg>';
+}
+function card(id,d,ok,t,now){
+  var e=$(id);e.className="card "+(ok?"ok":"bad");
+  e.innerHTML="<b>"+NAME[d]+"</b>"+(ok?'<span class="t">זמין</span>':'<span class="t">'+cd(t-now)+'</span>עד '+hm(t));
+}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function quick(d){
+  var now=Date.now(), ok=now>=nextTime(d);
+  put({id:uid(),d:d,t:now});
+  toast(ok?"נרשם: "+NAME[d]:"נרשם, אבל שימו לב: עדיין לא עבר הזמן המומלץ ל"+NAME[d]);
+}
+document.querySelectorAll(".dose").forEach(function(b){b.onclick=function(){quick(b.dataset.d);};});
+
+$("addT").onclick=function(){
+  var v=parseFloat($("tv").value.replace(",","."));
+  if(!(v>30&&v<45)){toast("נא להזין טמפרטורה בין 30 ל-45");return;}
+  put({id:uid(),d:"t",t:Date.now(),v:v});$("tv").value="";toast("נרשם חום "+v.toFixed(1)+"°");
+};
+function tg(){$("fvw").style.display=$("fd").value==="t"?"":"none";}
+$("fd").onchange=tg;
+var editing=null;
+function openEdit(x){
+  editing=x;
+  $("dtitle").textContent=x?"עריכת מנה":"הוספה ידנית";
+  $("fd").value=x?x.d:"n";
+  $("fv").value=x&&x.d==="t"?x.v:"";tg();
+  $("ft").value=toLocalInput(x?x.t:Date.now());
+  $("del").style.display=x?"":"none";
+  $("dlg").showModal();
+}
+$("addManual").onclick=function(){openEdit(null);};
+$("cancel").onclick=function(){$("dlg").close();};
+$("save").onclick=function(){
+  var t=new Date($("ft").value).getTime();
+  if(isNaN(t)){toast("נא להזין תאריך ושעה");return;}
+  var d=$("fd").value,v=parseFloat($("fv").value.replace(",","."));
+  if(d==="t"&&!(v>30&&v<45)){toast("נא להזין טמפרטורה תקינה");return;}
+  var o=editing||{id:uid()};o.d=d;o.t=t;if(d==="t")o.v=v;else delete o.v;put(o);$("dlg").close();
+};
+$("del").onclick=function(){
+  drop(editing);$("dlg").close();
+};
+
+var MAP={"נורופן":"n","אקמולי":"a","חום":"t"};
+function csv(){
+  var rows=["סוג,תאריך ושעה,ערך"];
+  log.slice().sort(function(a,b){return a.t-b.t;}).forEach(function(x){
+    rows.push(NAME[x.d]+","+toLocalInput(x.t).replace("T"," ")+","+(x.d==="t"?x.v:""));
+  });
+  return "\uFEFF"+rows.join("\r\n");
+}
+function parseCsv(s){
+  var out=[];
+  s.replace(/^\uFEFF/,"").split(/\r?\n/).forEach(function(line){
+    var c=line.split(/[,;\t]/).map(function(z){return z.replace(/^"|"$/g,"").trim();});
+    var d=MAP[c[0]];if(!d)return;
+    var q=c[1]||"",m=q.match(/^(\d{4})-(\d{1,2})-(\d{1,2})[ T](\d{1,2}):(\d{2})/),t;
+    if(m)t=new Date(+m[1],m[2]-1,+m[3],+m[4],+m[5]).getTime();
+    else{m=q.match(/^(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})[ T](\d{1,2}):(\d{2})/);if(!m)return;
+      t=new Date(+m[3],m[2]-1,+m[1],+m[4],+m[5]).getTime();}
+    var o={d:d,t:t};
+    if(d==="t"){var v=parseFloat((c[2]||"").replace(",","."));if(!(v>30&&v<45))return;o.v=v;}
+    out.push(o);
+  });
+  return out;
+}
+function addAll(arr){
+  var n=0;
+  arr.forEach(function(x){
+    if(x&&(x.d==="n"||x.d==="a"||(x.d==="t"&&typeof x.v==="number"))&&typeof x.t==="number"&&!isNaN(x.t)&&
+      !log.some(function(y){return y.d===x.d&&y.t===x.t;})){
+      var e={id:x.id||uid(),d:x.d,t:x.t};if(x.d==="t")e.v=x.v;put(e,true);n++;
+    }
+  });
+  render();toast(n?"יובאו "+n+" רשומות חדשות":"לא נמצאו רשומות חדשות לייבוא");
+  if(n)$("bk").close();
+}
+function importText(s){
+  s=(s||"").replace(/^\uFEFF/,"").trim();
+  if(!s){toast("אין נתונים לייבוא");return;}
+  if(s.charAt(0)==="{"||s.charAt(0)==="["){
+    try{var o=JSON.parse(s);addAll(Array.isArray(o)?o:o.log);return;}catch(e){}
+  }
+  addAll(parseCsv(s));
+}
+$("backup").onclick=function(){$("txt").value="";$("bk").showModal();};
+$("close").onclick=function(){$("bk").close();};
+function fallback(name,s){
+  try{
+    var f=new File([s],name,{type:"text/csv"});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:"גיבוי מעקב חום"}).catch(function(){});return;}
+  }catch(e){}
+  $("txt").value=s;$("txt").select();toast("השמירה לקובץ לא זמינה כאן — העתיקו את הטקסט ושמרו אותו");
+}
+$("exp").onclick=function(){
+  var name="fever-log-"+toLocalInput(Date.now()).slice(0,10)+".csv",s=csv();
+  try{
+    var b=new Blob([s],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");
+    a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1000);
+    toast("הקובץ הורד");
+  }catch(e){fallback(name,s);}
+};
+$("copy").onclick=function(){
+  var t=$("txt");t.value=csv();t.select();
+  var ok=function(){toast("הועתק");};
+  try{navigator.clipboard.writeText(t.value).then(ok,function(){document.execCommand("copy");ok();});}
+  catch(e){try{document.execCommand("copy");ok();}catch(e2){toast("סמנו והעתיקו ידנית");}}
+};
+$("impTxt").onclick=function(){importText($("txt").value);};
+$("shr").onclick=function(){
+  var name="fever-log-"+toLocalInput(Date.now()).slice(0,10)+".csv",s=csv();
+  try{
+    var f=new File([s],name,{type:"text/csv"});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:"גיבוי מעקב חום"}).catch(function(){});return;}
+    if(navigator.share){navigator.share({title:"גיבוי מעקב חום",text:s}).catch(function(){});return;}
+  }catch(e){}
+  $("txt").value=s;$("txt").select();toast("השיתוף לא נתמך כאן — העתיקו את הטקסט ושמרו אותו");
+};
+$("file").onchange=function(){
+  var f=this.files[0];if(!f)return;
+  toast("קורא את "+f.name+"…");
+  var r=new FileReader();r.onload=function(){importText(r.result);};r.onerror=function(){toast("לא הצלחתי לקרוא את הקובץ");};r.readAsText(f);this.value="";
+};
+
+setBadge();render();setInterval(render,1000);
+})();
+</script>
+</body>
+</html>
